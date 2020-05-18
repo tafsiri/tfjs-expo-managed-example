@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "tjjs-expo-hosted",
-    "slug": "tjjs-expo-hosted",
+    "name": "tfjs-expo-hosted",
+    "slug": "tfjs-expo-hosted",
     "platforms": [
       "ios",
       "android",
