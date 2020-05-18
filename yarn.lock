@@ -1132,6 +1132,11 @@
   resolved "https://registry.yarnpkg.com/@tensorflow-models/blazeface/-/blazeface-0.0.5.tgz#6261fcc5de61a283ea409b69f6a851f44a809826"
   integrity sha512-bIMJDV2CD8rr7v9OrIDdDZVh9sbk0EhlZdHaDFpgWUw3Lp21wUN7GSifOJVE5hV2ngmpzM+J12OH8bG1GZoDag==
 
+"@tensorflow-models/mobilenet@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@tensorflow-models/mobilenet/-/mobilenet-2.0.4.tgz#7f40771fcc650f50febd49be72372d39c15f6f95"
+  integrity sha512-fkcxDBldlYitDCV88xETwAQoBIC8xYKdDu80uBDuBZBfNC4k/jeVbZHM28WjvTDsJN7d7dYO4NbIkRAH0XHKSQ==
+
 "@tensorflow/tfjs-converter@1.7.4":
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-1.7.4.tgz#90838fe9ca2d540f22a65fdcbe2311a01e786380"

@@ -16,13 +16,14 @@
  */
 
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-react-native';
 import * as blazeface from '@tensorflow-models/blazeface';
+import * as mobilenet from '@tensorflow-models/mobilenet';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
-import {cameraWithTensors} from '@tensorflow/tfjs-react-native';
+import {cameraWithTensors, fetch, decodeJpeg} from '@tensorflow/tfjs-react-native';
 
 const TensorCamera = cameraWithTensors(Camera);
 const AUTORENDER = true;
@@ -32,8 +33,11 @@ const makePredictionEveryNFrames = 3;
 // Position of camera preview.
 const previewLeft = 40;
 const previewTop = 20;
-const previewWidth = 300;
-const previewHeight = 400;
+const previewWidth = 200;
+const previewHeight = 300;
+
+let mobilenetModel;
+const imageUrl = 'https://placekitten.com/224/224';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -43,6 +47,7 @@ export default class App extends React.Component {
       cameraType: Camera.Constants.Type.front,
       lastShape: 'none',
       faces: [],
+      mobilenetClasses: [],
     };
 
     this.handleImageTensorReady = this.handleImageTensorReady.bind(this);
@@ -50,6 +55,10 @@ export default class App extends React.Component {
 
   async loadBlazefaceModel() {
     return await blazeface.load();
+  }
+
+  async loadMobileNet() {
+    return await mobilenet.load();
   }
 
   async componentDidMount() {    
@@ -69,6 +78,8 @@ export default class App extends React.Component {
     }
 
     const blazefaceModel = await this.loadBlazefaceModel();
+    mobilenetModel = await this.loadMobileNet();    
+    const mobileNetPrediction = await this.makeMobilenetPredictionFromURL(imageUrl);    
     this.setState({
       isTfReady: true,
       permissionsStatus: status,
@@ -76,7 +87,22 @@ export default class App extends React.Component {
       textureDims,
       tensorDims,
       scale,
+      mobilenetClasses: mobileNetPrediction,
     });
+  }
+
+  async makeMobilenetPredictionFromURL(url) {    
+    const response = await fetch(url, {}, { isBinary: true });
+    const rawImageData = await response.arrayBuffer();
+    const raw = new Uint8Array(rawImageData)    
+    const imageTensor = decodeJpeg(raw);
+    const pred = await this.makeMobilenetPrediction(imageTensor);    
+    imageTensor.dispose();
+    return pred;
+  }
+
+  async makeMobilenetPrediction(imageTensor) {
+    return await mobilenetModel.classify(imageTensor, 3);
   }
 
   async handleImageTensorReady(images) {
@@ -128,6 +154,17 @@ export default class App extends React.Component {
     });
   }
 
+  renderMobileNetOutput() {
+    const {mobilenetClasses} = this.state;
+    return mobilenetClasses.map((mClass, i) => {
+      const {className, probability} = mClass;      
+      return <Text key={`className${i}`}>
+        className: {className} |
+        probability: {probability.toFixed(3)}
+      </Text>
+    });
+  }
+
   renderMain() {
     const {textureDims, faces, tensorDims} = this.state;
 
@@ -157,6 +194,15 @@ export default class App extends React.Component {
         <Text># faces detected: {faces.length}</Text>
         {this.renderBoundingBoxes()}
         {this.renderFacesDebugInfo()}
+        <Image
+          style={styles.catImage}
+          source={{
+            uri: 'https://placekitten.com/224/224',
+            width: 224,
+            height: 224,
+          }}
+        />
+        {this.renderMobileNetOutput()}
       </View>
     );
   }
@@ -200,7 +246,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    height: '80%',
+    height: '60%',
     backgroundColor: '#fff',
   },
   camera : {
@@ -219,5 +265,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'red',
     borderRadius: 0,
+  },
+  catImage: {
+    width: 100,
+    height: 100,
   }
 });
